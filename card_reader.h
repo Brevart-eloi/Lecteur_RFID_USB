@@ -37,9 +37,8 @@ static std::string cardTypeName(uint8_t t)
     }
 }
 
-// ---------------------------------------------------------------
+
 // Classe principale
-// ---------------------------------------------------------------
 class CardReader
 {
     UfrLoader& m_loader;
@@ -63,8 +62,8 @@ public:
             << "  Hardware      : v" << std::dec << (int)hwMaj << '.' << (int)hwMin << "\n";
     }
 
-    // Attend qu'une carte soit presentee (jusqu'a timeoutMs) et renvoie son UID
-    // en hexa, d'un bloc (ex: "A1B2C3D4"). Utilise pour l'ajout depuis la GUI.
+    // Attend qu'une carte soit presentee et renvoie son UID
+    // en hexa, d'un bloc. Utilise pour l'ajout depuis la GUI.
     // Renvoie false si rien n'est lu a temps.
     bool readUidOnce(std::string& uidHex, std::string& typeName, int timeoutMs = 8000)
     {

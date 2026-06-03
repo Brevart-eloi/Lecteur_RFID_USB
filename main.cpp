@@ -1,10 +1,3 @@
-// Gestion des utilisateurs RFID - petite interface Win32.
-//
-// Pour ajouter un badge : on tape le nom du proprietaire, on pose la carte sur
-// le lecteur uFR, et l'UID part vers le proxy node.js. Le reste (lister, activer,
-// supprimer) passe par les routes /rfid du proxy.
-//
-// A lancer depuis Visual Studio (F5), avec uFCoder-x86.dll a cote de l'exe.
 #ifndef UNICODE
 #define UNICODE
 #endif
@@ -32,12 +25,11 @@ static ApiClient          g_api;
 static std::vector<Badge> g_badges;
 static HWND g_hList, g_hStatus, g_hIp, g_hPort, g_hUser, g_hPass, g_hOwner;
 
-// Le lecteur n'est ouvert qu'au premier scan (pas besoin de l'avoir branche
-// juste pour consulter ou supprimer des badges).
+// Le lecteur n'est ouvert qu'au premier scan 
 static UfrLoader g_loader;
 static bool      g_readerLoaded = false;
 
-// Recupere le texte d'un champ en wide-string.
+// Recupere le texte 
 static std::wstring getText(HWND h) {
     int len = GetWindowTextLengthW(h);
     std::wstring w(len, 0);
@@ -50,11 +42,11 @@ static void setStatus(const std::wstring& s) { SetWindowTextW(g_hStatus, s.c_str
 static bool ensureReader(std::wstring& err) {
     if (g_readerLoaded) return true;
     if (!g_loader.load("uFCoder-x86.dll")) {
-        err = L"uFCoder-x86.dll introuvable (place-la a cote de l'exe).";
+        err = L"uFCoder-x86.dll introuvable";
         return false;
     }
     if (g_loader.ReaderOpen() != UFR_OK) {
-        err = L"Lecteur uFR non detecte (verifie le branchement USB).";
+        err = L"Lecteur uFR non detecte";
         return false;
     }
     g_readerLoaded = true;
@@ -77,14 +69,14 @@ static bool doLogin() {
     }
     if (g_api.role != "admin")
         setStatus(L"Connecte en tant que '" + ApiClient::widen(g_api.role) +
-                  L"' - l'ajout/suppression exige un compte admin.");
+                  L"un ajout/suppression exige un compte admin");
     else
-        setStatus(L"Connecte (admin).");
+        setStatus(L"Connecte en admin");
     return true;
 }
 
 static void refreshBadges() {
-    if (!g_api.isLogged()) { setStatus(L"Connectez-vous d'abord."); return; }
+    if (!g_api.isLogged()) { setStatus(L"Connectez-vous d'abord"); return; }
     std::string err;
     if (!g_api.listBadges(g_badges, err)) { setStatus(ApiClient::widen(err)); return; }
 
@@ -100,15 +92,15 @@ static void refreshBadges() {
         ListView_SetItemText(g_hList, (int)i, 2, (LPWSTR)wown.c_str());
         ListView_SetItemText(g_hList, (int)i, 3, (LPWSTR)(b.enabled ? L"Actif" : L"Desactive"));
     }
-    setStatus(std::to_wstring(g_badges.size()) + L" badge(s).");
+    setStatus(std::to_wstring(g_badges.size()) + L" badge");
 }
 
 static void addBadge() {
-    if (!g_api.isLogged()) { setStatus(L"Connectez-vous d'abord."); return; }
+    if (!g_api.isLogged()) { setStatus(L"Connectez-vous d'abord"); return; }
 
     std::wstring owner = getText(g_hOwner);
     if (owner.empty()) {
-        setStatus(L"Saisissez d'abord le nom du proprietaire (champ 'Proprietaire').");
+        setStatus(L"Saisissez d'abord le nom du proprietaire");
         SetFocus(g_hOwner);
         return;
     }
@@ -122,11 +114,11 @@ static void addBadge() {
     CardReader reader(g_loader);
     std::string uid, type;
     if (!reader.readUidOnce(uid, type, 8000)) {
-        setStatus(L"Aucune carte detectee. Reessayez.");
+        setStatus(L"Aucune carte detectee, Reessayez");
         return;
     }
 
-    // /!\ On retire le dernier octet de l'UID (les 2 derniers caracteres hex).
+    // /!\ On retire le dernier octet de l'UID (les 2 derniers caracteres hex)
     // Le uFR lit les 4 octets complets, mais le lecteur de porte (Wiegand-26,
     // 24 bits) n'en garde que 3. Sans ca, un badge ajoute ici ne serait pas
     // reconnu par la porte. On passe aussi en minuscules pour coller au format
@@ -146,7 +138,7 @@ static void addBadge() {
 
 static void toggleBadge() {
     int i = selectedIndex();
-    if (i < 0 || i >= (int)g_badges.size()) { setStatus(L"Selectionnez un badge."); return; }
+    if (i < 0 || i >= (int)g_badges.size()) { setStatus(L"Selectionnez un badge"); return; }
     Badge& b = g_badges[i];
     std::string err;
     std::string key = b.id.empty() ? b.uid : b.id;
@@ -156,14 +148,14 @@ static void toggleBadge() {
 
 static void deleteBadge(HWND parent) {
     int i = selectedIndex();
-    if (i < 0 || i >= (int)g_badges.size()) { setStatus(L"Selectionnez un badge."); return; }
+    if (i < 0 || i >= (int)g_badges.size()) { setStatus(L"Selectionnez un badge"); return; }
     Badge& b = g_badges[i];
     std::wstring msg = L"Supprimer le badge " + ApiClient::widen(b.uid) +
                        L" (" + ApiClient::widen(b.owner) + L") ?";
     if (MessageBoxW(parent, msg.c_str(), L"Confirmation", MB_YESNO | MB_ICONWARNING) != IDYES) return;
     std::string err;
     std::string key = b.id.empty() ? b.uid : b.id;
-    if (g_api.deleteBadge(key, err)) { setStatus(L"Badge supprime."); refreshBadges(); }
+    if (g_api.deleteBadge(key, err)) { setStatus(L"Badge supprime"); refreshBadges(); }
     else setStatus(ApiClient::widen(err));
 }
 
