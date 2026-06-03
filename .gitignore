@@ -1,0 +1,27 @@
+# Sortie de build Visual Studio
+[Dd]ebug/
+[Rr]elease/
+x64/
+x86/
+[Ww]in32/
+
+# Fichiers intermédiaires / générés
+*.obj
+*.pdb
+*.ilk
+*.exe
+*.idb
+*.iobj
+*.ipdb
+*.log
+*.tlog
+*.lastbuildstate
+*.recipe
+*.FileListAbsolute.txt
+
+# Cache et préférences locales Visual Studio
+.vs/
+*.vcxproj.user
+
+# Divers
+.claude/
